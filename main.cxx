@@ -52,6 +52,7 @@ public:
     bool compare_face_rectangles(std::pair<rectangle, rectangle> pair, string file_one, string file_two);
 
 private:
+    bool compare_face_rectangles(std::pair<rectangle, rectangle> pair, matrix<rgb_pixel> img_one, matrix<rgb_pixel> img_two);
     std::vector<rectangle> get_faces(matrix<rgb_pixel> img);
     bool compare_faces(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_two);
     frontal_face_detector detector;
@@ -114,22 +115,31 @@ std::map<rectangle, rectangle> Guise::compare_images(string file_one, string fil
     return map;
 }
 
+// Compare two rectangles.
 bool Guise::compare_face_rectangles(std::pair<rectangle, rectangle> pair, string file_one, string file_two)
 {
     matrix<rgb_pixel> img;
     load_image(img, file_one);
 
+    matrix<rgb_pixel> img_two;
+    load_image(img_two, file_two);
+
+    return compare_face_rectangles(pair, img, img_two);
+}
+
+// Compare two rectangles. Please pass the whole image.
+bool Guise::compare_face_rectangles(std::pair<rectangle, rectangle> pair, matrix<rgb_pixel> img_one, matrix<rgb_pixel> img_two)
+{
     // Extract first face chip using rectangle and image.
-    auto val = sp(img, pair.first);
+    auto val = sp(img_one, pair.first);
     matrix<rgb_pixel> face_chip;
-    extract_image_chip(img, get_face_chip_details(val, 150, 0.25), face_chip);
+    extract_image_chip(img_one, get_face_chip_details(val, 150, 0.25), face_chip);
     face_chip = move(face_chip);
 
-    load_image(img, file_two);
-    val = sp(img, pair.second);
+    val = sp(img_two, pair.second);
     matrix<rgb_pixel> face_chip2;
-    extract_image_chip(img, get_face_chip_details(val, 150, 0.25), face_chip2);
-    face_chip = move(face_chip2);
+    extract_image_chip(img_two, get_face_chip_details(val, 150, 0.25), face_chip2);
+    face_chip2 = move(face_chip2);
 
     return compare_faces(face_chip, face_chip2);
 }
