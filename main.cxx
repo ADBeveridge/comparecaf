@@ -55,11 +55,13 @@ private:
     bool compare_faces(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_two);
     frontal_face_detector detector;
     shape_predictor sp;
+    anet_type net;
 };
 
 Guise::Guise() {
     detector = get_frontal_face_detector();
     deserialize("./shape_predictor_5_face_landmarks.dat") >> sp;
+    deserialize("./dlib_face_recognition_resnet_model_v1.dat") >> net;
 }
 
 // Get the face rectangle and the shape detection.
@@ -73,14 +75,19 @@ std::map<rectangle, full_object_detection> Guise::get_faces(matrix<rgb_pixel> im
     return map;
 }
 
+// Get retangle coordinates of faces that are the same.
 void Guise::compare_images(string file_one, string file_two)
 {
+    // The first retangle references file_one, the second references file_two.
+    std::map<rectangle, rectangle> map;
     // Vector of faces from the first image.
     std::vector<matrix<rgb_pixel>> faces;
     // Vector of faces from the second image.
     std::vector<matrix<rgb_pixel>> faces2;
-
+    // Image storage.
     matrix<rgb_pixel> img;
+    // Temporary retangle data.
+    std::vector<rectangle> tmp;
 
     // Extract all faces from the first image.
     load_image(img, file_one);
@@ -89,9 +96,10 @@ void Guise::compare_images(string file_one, string file_two)
         matrix<rgb_pixel> face_chip;
         extract_image_chip(img, get_face_chip_details(face.second,150,0.25), face_chip);
         faces.push_back(move(face_chip));
+        tmp.push_back(face.first);
     }
 
-    // Extract all faces from the first image.
+    // Extract all faces from the second image and compare.
     load_image(img, file_two);
     for (auto face : get_faces(img))
     {
@@ -100,13 +108,20 @@ void Guise::compare_images(string file_one, string file_two)
         face_chip = move(face_chip);
 
         // Since we have the first vector of faces filled up, lets compare it with this one as we go along.
-        for (auto first_face_chip : faces)
+        for (int i = 0; i < faces.size(); i++)
         {
-            std::cout << "Result: " << compare_faces(first_face_chip, face_chip) << endl;
+            bool res = compare_faces(faces[i], face_chip);
+            if (res == true)
+            {
+                map[tmp[i]] = face.first;
+            }
+
+            std::cout << "Result: " << res << endl;
         }
 
         faces2.push_back(face_chip);
     }
+    std::cout << map.size() << endl;
 }
 
 
@@ -123,9 +138,6 @@ int main(int argc, char **argv)
 
 bool Guise::compare_faces(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_two)
 {
-    anet_type net;
-    deserialize("./dlib_face_recognition_resnet_model_v1.dat") >> net;
-
     // Convert each face image in faces into a 128D vector.
     std::vector<matrix<float, 0, 1>> face_descriptors;
     face_descriptors.push_back(net(face_one));
