@@ -55,6 +55,8 @@ private:
     bool compare_face_rectangles(std::pair<rectangle, rectangle> pair, matrix<rgb_pixel> img_one, matrix<rgb_pixel> img_two);
     std::vector<rectangle> get_faces(matrix<rgb_pixel> img);
     bool compare_faces(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_two);
+
+    // AI.
     frontal_face_detector detector;
     shape_predictor sp;
     anet_type net;
@@ -84,26 +86,24 @@ std::map<rectangle, rectangle> Guise::compare_images(string file_one, string fil
     std::vector<matrix<rgb_pixel>> faces2;
     // Image storage.
     matrix<rgb_pixel> img;
+    matrix<rgb_pixel> img2;
     // Temporary retangle data.
     std::vector<rectangle> tmp;
 
     // Extract all faces from the first image.
     load_image(img, file_one);
-    for (auto face : get_faces(img))
-    {
-        tmp.push_back(face);
-    }
+    tmp = get_faces(img);
 
     // Extract all faces from the second image and compare.
-    load_image(img, file_two);
-    for (auto face : get_faces(img))
+    load_image(img2, file_two);
+    for (auto face : get_faces(img2))
     {
         for (int i = 0; i < tmp.size(); i++)
         {
             std::pair<rectangle, rectangle> pair;
             pair.first = tmp[i];
             pair.second = face;
-            bool res = compare_face_rectangles(pair, file_one, file_two);
+            bool res = compare_face_rectangles(pair, img, img2);
 
             if (res == true)
             {
