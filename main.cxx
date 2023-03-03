@@ -49,6 +49,7 @@ public:
     ~Guise(){};
 
     void compare_images(string file_one, string file_two);
+    std::map<rectangle, full_object_detection> get_faces(matrix<rgb_pixel> img);
 private:
     
     bool compare_faces(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_two);
@@ -61,6 +62,17 @@ Guise::Guise() {
     deserialize("./shape_predictor_5_face_landmarks.dat") >> sp;
 }
 
+// Get the face rectangle and the shape detection.
+std::map<rectangle, full_object_detection> Guise::get_faces(matrix<rgb_pixel> img)
+{
+    std::map<rectangle, full_object_detection> map;
+    for (auto face : detector(img))
+    {
+        map[face] = sp(img, face);
+    }
+    return map;
+}
+
 void Guise::compare_images(string file_one, string file_two)
 {
     // Vector of faces from the first image.
@@ -68,29 +80,33 @@ void Guise::compare_images(string file_one, string file_two)
     // Vector of faces from the second image.
     std::vector<matrix<rgb_pixel>> faces2;
 
-    // Extract all faces from the first image.
     matrix<rgb_pixel> img;
+
+    // Extract all faces from the first image.
     load_image(img, file_one);
-    for (auto face : detector(img))
+    for (auto face : get_faces(img))
     {
-        auto shape = sp(img, face);
         matrix<rgb_pixel> face_chip;
-        extract_image_chip(img, get_face_chip_details(shape,150,0.25), face_chip);
+        extract_image_chip(img, get_face_chip_details(face.second,150,0.25), face_chip);
         faces.push_back(move(face_chip));
     }
 
     // Extract all faces from the first image.
-    matrix<rgb_pixel> img2;
-    load_image(img2, file_two);
-    for (auto face : detector(img2))
+    load_image(img, file_two);
+    for (auto face : get_faces(img))
     {
-        auto shape = sp(img2, face);
         matrix<rgb_pixel> face_chip;
-        extract_image_chip(img, get_face_chip_details(shape,150,0.25), face_chip);
-        faces2.push_back(move(face_chip));
-    }
+        extract_image_chip(img, get_face_chip_details(face.second,150,0.25), face_chip);
+        face_chip = move(face_chip);
 
-    std::cout << "Result: " << compare_faces(faces[0], faces2[0]) << endl;
+        // Since we have the first vector of faces filled up, lets compare it with this one as we go along.
+        for (auto first_face_chip : faces)
+        {
+            std::cout << "Result: " << compare_faces(first_face_chip, face_chip) << endl;
+        }
+
+        faces2.push_back(face_chip);
+    }
 }
 
 
@@ -122,7 +138,7 @@ bool Guise::compare_faces(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_t
         for (size_t j = i; j < face_descriptors.size(); ++j)
         {
             // If the similarity of the images is close enough, then mark.
-            if (length(face_descriptors[i] - face_descriptors[j]) < 1)
+            if (length(face_descriptors[i] - face_descriptors[j]) < .6)
                 edges.push_back(sample_pair(i, j));
         }
     }
