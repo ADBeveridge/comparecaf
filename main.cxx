@@ -42,8 +42,57 @@ using alevel4 = ares<32, ares<32, ares<32, SUBNET>>>;
 
 using anet_type = loss_metric<fc_no_bias<128, avg_pool_everything<alevel0<alevel1<alevel2<alevel3<alevel4<max_pool<3, 3, 2, 2, relu<affine<con<32, 7, 7, 2, 2, input_rgb_image_sized<150>>>>>>>>>>>>>;
 
-std::vector<matrix<rgb_pixel>> jitter_image(const matrix<rgb_pixel> &img);
-bool compare_faces_for_equality(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &two);
+
+class Guise {
+public:
+    Guise();
+    ~Guise(){};
+
+    void compare_images(string file_one, string file_two);
+private:
+    
+    bool compare_faces(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_two);
+    frontal_face_detector detector;
+    shape_predictor sp;
+};
+
+Guise::Guise() {
+    detector = get_frontal_face_detector();
+    deserialize("./shape_predictor_5_face_landmarks.dat") >> sp;
+}
+
+void Guise::compare_images(string file_one, string file_two)
+{
+    // Vector of faces from the first image.
+    std::vector<matrix<rgb_pixel>> faces;
+    // Vector of faces from the second image.
+    std::vector<matrix<rgb_pixel>> faces2;
+
+    // Extract all faces from the first image.
+    matrix<rgb_pixel> img;
+    load_image(img, file_one);
+    for (auto face : detector(img))
+    {
+        auto shape = sp(img, face);
+        matrix<rgb_pixel> face_chip;
+        extract_image_chip(img, get_face_chip_details(shape,150,0.25), face_chip);
+        faces.push_back(move(face_chip));
+    }
+
+    // Extract all faces from the first image.
+    matrix<rgb_pixel> img2;
+    load_image(img2, file_two);
+    for (auto face : detector(img2))
+    {
+        auto shape = sp(img2, face);
+        matrix<rgb_pixel> face_chip;
+        extract_image_chip(img, get_face_chip_details(shape,150,0.25), face_chip);
+        faces2.push_back(move(face_chip));
+    }
+
+    std::cout << "Result: " << compare_faces(faces[0], faces2[0]) << endl;
+}
+
 
 int main(int argc, char **argv)
 {
@@ -52,38 +101,11 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    // Load CNN.
-    frontal_face_detector detector = get_frontal_face_detector();
-
-    shape_predictor shape_predictor;
-    deserialize("./shape_predictor_5_face_landmarks.dat") >> shape_predictor;
-
-    // Vector of all faces.
-    std::vector<matrix<rgb_pixel>> faces;
-
-    // Extract first face from first image.
-    matrix<rgb_pixel> img;
-    load_image(img, argv[1]);
-    auto face = detector(img);
-    auto shape = shape_predictor(img, face[0]);
-    matrix<rgb_pixel> face_chip;
-    extract_image_chip(img, get_face_chip_details(shape, 150, 0.25), face_chip);
-    faces.push_back(move(face_chip));
-
-    // Extract first face from second image.
-    matrix<rgb_pixel> img2; // Data stored as matrix
-    load_image(img2, argv[2]); // Load
-    auto theface = detector(img2); // Detect all faces from image
-    auto shape2 = shape_predictor(img2, theface[0]); // Get shape for first image.
-    matrix<rgb_pixel> face_chip2; // The block where the face is.
-    extract_image_chip(img2, get_face_chip_details(shape2, 150, 0.25), face_chip2); // Extract face chip.
-    faces.push_back(move(face_chip2)); // Save the face chip.
-
-
-    std::cout << "Result: " << compare_faces_for_equality(faces[0], faces[1]);
+    Guise guise;
+    guise.compare_images(string(argv[1]), string(argv[2]));
 }
 
-bool compare_faces_for_equality(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_two)
+bool Guise::compare_faces(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_two)
 {
     anet_type net;
     deserialize("./dlib_face_recognition_resnet_model_v1.dat") >> net;
@@ -100,7 +122,7 @@ bool compare_faces_for_equality(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &
         for (size_t j = i; j < face_descriptors.size(); ++j)
         {
             // If the similarity of the images is close enough, then mark.
-            if (length(face_descriptors[i] - face_descriptors[j]) < 0.6)
+            if (length(face_descriptors[i] - face_descriptors[j]) < 1)
                 edges.push_back(sample_pair(i, j));
         }
     }
