@@ -48,7 +48,7 @@ public:
     Guise();
     ~Guise(){};
 
-    void compare_images(string file_one, string file_two);
+    std::map<rectangle, rectangle> compare_images(string file_one, string file_two);
     std::map<rectangle, full_object_detection> get_faces(matrix<rgb_pixel> img);
 private:
     
@@ -76,7 +76,7 @@ std::map<rectangle, full_object_detection> Guise::get_faces(matrix<rgb_pixel> im
 }
 
 // Get retangle coordinates of faces that are the same.
-void Guise::compare_images(string file_one, string file_two)
+std::map<rectangle, rectangle> Guise::compare_images(string file_one, string file_two)
 {
     // The first retangle references file_one, the second references file_two.
     std::map<rectangle, rectangle> map;
@@ -121,19 +121,7 @@ void Guise::compare_images(string file_one, string file_two)
 
         faces2.push_back(face_chip);
     }
-    std::cout << map.size() << endl;
-}
-
-
-int main(int argc, char **argv)
-{
-    if (argc != 3)
-    {
-        return 1;
-    }
-
-    Guise guise;
-    guise.compare_images(string(argv[1]), string(argv[2]));
+    return map;
 }
 
 bool Guise::compare_faces(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_two)
@@ -167,4 +155,15 @@ bool Guise::compare_faces(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_t
     {
         return false;
     }
+}
+
+int main(int argc, char **argv)
+{
+    if (argc != 3)
+    {
+        return 1;
+    }
+
+    Guise guise;
+    guise.compare_images(string(argv[1]), string(argv[2]));
 }
