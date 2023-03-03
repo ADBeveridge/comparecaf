@@ -147,9 +147,8 @@ bool Guise::compare_faces(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_t
     {
         for (size_t j = i; j < face_descriptors.size(); ++j)
         {
-            auto len = length(face_descriptors[i] - face_descriptors[j]);
-            cout << len << endl;
             // If the similarity of the images is close enough, then mark.
+            auto len = length(face_descriptors[i] - face_descriptors[j]);
             if (len < .6)
                 edges.push_back(sample_pair(i, j));
         }
