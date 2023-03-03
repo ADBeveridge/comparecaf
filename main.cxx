@@ -52,7 +52,7 @@ public:
     bool compare_face_rectangles(std::pair<rectangle, rectangle> pair, string file_one, string file_two);
 
 private:
-    std::map<rectangle, full_object_detection> get_faces(matrix<rgb_pixel> img);
+    std::vector<rectangle> get_faces(matrix<rgb_pixel> img);
     bool compare_faces(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_two);
     frontal_face_detector detector;
     shape_predictor sp;
@@ -67,14 +67,9 @@ Guise::Guise()
 }
 
 // Get the face rectangle and the shape detection.
-std::map<rectangle, full_object_detection> Guise::get_faces(matrix<rgb_pixel> img)
+std::vector<rectangle> Guise::get_faces(matrix<rgb_pixel> img)
 {
-    std::map<rectangle, full_object_detection> map;
-    for (rectangle face : detector(img))
-    {
-        map[face] = sp(img, face);
-    }
-    return map;
+    return detector(img);
 }
 
 // Get retangle coordinates of faces that are the same.
@@ -95,33 +90,26 @@ std::map<rectangle, rectangle> Guise::compare_images(string file_one, string fil
     load_image(img, file_one);
     for (auto face : get_faces(img))
     {
-        matrix<rgb_pixel> face_chip;
-        extract_image_chip(img, get_face_chip_details(face.second, 150, 0.25), face_chip);
-        faces.push_back(move(face_chip));
-        tmp.push_back(face.first);
+        tmp.push_back(face);
     }
 
     // Extract all faces from the second image and compare.
     load_image(img, file_two);
     for (auto face : get_faces(img))
     {
-        matrix<rgb_pixel> face_chip;
-        extract_image_chip(img, get_face_chip_details(face.second, 150, 0.25), face_chip);
-        face_chip = move(face_chip);
-
-        // Since we have the first vector of faces filled up, lets compare it with this one as we go along.
-        for (int i = 0; i < faces.size(); i++)
+        for (int i = 0; i < tmp.size(); i++)
         {
-            bool res = compare_faces(faces[i], face_chip);
+            std::pair<rectangle, rectangle> pair;
+            pair.first = tmp[i];
+            pair.second = face;
+            bool res = compare_face_rectangles(pair, file_one, file_two);
+
             if (res == true)
             {
-                map[tmp[i]] = face.first;
+                map[pair.first] = pair.second;
+                cout << "Found pair!" << endl;
             }
-
-            std::cout << "Result: " << res << endl;
         }
-
-        faces2.push_back(face_chip);
     }
     return map;
 }
@@ -136,7 +124,8 @@ bool Guise::compare_face_rectangles(std::pair<rectangle, rectangle> pair, string
     matrix<rgb_pixel> face_chip;
     extract_image_chip(img, get_face_chip_details(val, 150, 0.25), face_chip);
     face_chip = move(face_chip);
-    
+
+    load_image(img, file_two);
     val = sp(img, pair.second);
     matrix<rgb_pixel> face_chip2;
     extract_image_chip(img, get_face_chip_details(val, 150, 0.25), face_chip2);
@@ -158,8 +147,10 @@ bool Guise::compare_faces(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_t
     {
         for (size_t j = i; j < face_descriptors.size(); ++j)
         {
+            auto len = length(face_descriptors[i] - face_descriptors[j]);
+            cout << len << endl;
             // If the similarity of the images is close enough, then mark.
-            if (length(face_descriptors[i] - face_descriptors[j]) < .6)
+            if (len < .6)
                 edges.push_back(sample_pair(i, j));
         }
     }
