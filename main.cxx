@@ -42,23 +42,25 @@ using alevel4 = ares<32, ares<32, ares<32, SUBNET>>>;
 
 using anet_type = loss_metric<fc_no_bias<128, avg_pool_everything<alevel0<alevel1<alevel2<alevel3<alevel4<max_pool<3, 3, 2, 2, relu<affine<con<32, 7, 7, 2, 2, input_rgb_image_sized<150>>>>>>>>>>>>>;
 
-
-class Guise {
+class Guise
+{
 public:
     Guise();
     ~Guise(){};
 
     std::map<rectangle, rectangle> compare_images(string file_one, string file_two);
-    std::map<rectangle, full_object_detection> get_faces(matrix<rgb_pixel> img);
+    bool compare_face_rectangles(std::pair<rectangle, rectangle> pair, string file_one, string file_two);
+
 private:
-    
+    std::map<rectangle, full_object_detection> get_faces(matrix<rgb_pixel> img);
     bool compare_faces(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_two);
     frontal_face_detector detector;
     shape_predictor sp;
     anet_type net;
 };
 
-Guise::Guise() {
+Guise::Guise()
+{
     detector = get_frontal_face_detector();
     deserialize("./shape_predictor_5_face_landmarks.dat") >> sp;
     deserialize("./dlib_face_recognition_resnet_model_v1.dat") >> net;
@@ -68,7 +70,7 @@ Guise::Guise() {
 std::map<rectangle, full_object_detection> Guise::get_faces(matrix<rgb_pixel> img)
 {
     std::map<rectangle, full_object_detection> map;
-    for (auto face : detector(img))
+    for (rectangle face : detector(img))
     {
         map[face] = sp(img, face);
     }
@@ -94,7 +96,7 @@ std::map<rectangle, rectangle> Guise::compare_images(string file_one, string fil
     for (auto face : get_faces(img))
     {
         matrix<rgb_pixel> face_chip;
-        extract_image_chip(img, get_face_chip_details(face.second,150,0.25), face_chip);
+        extract_image_chip(img, get_face_chip_details(face.second, 150, 0.25), face_chip);
         faces.push_back(move(face_chip));
         tmp.push_back(face.first);
     }
@@ -104,7 +106,7 @@ std::map<rectangle, rectangle> Guise::compare_images(string file_one, string fil
     for (auto face : get_faces(img))
     {
         matrix<rgb_pixel> face_chip;
-        extract_image_chip(img, get_face_chip_details(face.second,150,0.25), face_chip);
+        extract_image_chip(img, get_face_chip_details(face.second, 150, 0.25), face_chip);
         face_chip = move(face_chip);
 
         // Since we have the first vector of faces filled up, lets compare it with this one as we go along.
@@ -122,6 +124,25 @@ std::map<rectangle, rectangle> Guise::compare_images(string file_one, string fil
         faces2.push_back(face_chip);
     }
     return map;
+}
+
+bool Guise::compare_face_rectangles(std::pair<rectangle, rectangle> pair, string file_one, string file_two)
+{
+    matrix<rgb_pixel> img;
+    load_image(img, file_one);
+
+    // Extract first face chip using rectangle and image.
+    auto val = sp(img, pair.first);
+    matrix<rgb_pixel> face_chip;
+    extract_image_chip(img, get_face_chip_details(val, 150, 0.25), face_chip);
+    face_chip = move(face_chip);
+    
+    val = sp(img, pair.second);
+    matrix<rgb_pixel> face_chip2;
+    extract_image_chip(img, get_face_chip_details(val, 150, 0.25), face_chip2);
+    face_chip = move(face_chip2);
+
+    return compare_faces(face_chip, face_chip2);
 }
 
 bool Guise::compare_faces(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_two)
@@ -146,7 +167,7 @@ bool Guise::compare_faces(matrix<rgb_pixel> &face_one, matrix<rgb_pixel> &face_t
     // Number of individials may be less and the number of actual faces in the image.
     std::vector<unsigned long> people; // An array of the two faces identified with an id (a number starting at zero)
     const auto number_of_individuals = chinese_whispers(edges, people);
-    
+
     if (number_of_individuals == 1)
     {
         return true;
