@@ -1,13 +1,10 @@
-cmake_minimum_required(VERSION 2.8.12)
-project(examples)
+# Root CMakeLists.txt
+cmake_minimum_required(VERSION 3.0)
+project(mylib)
 
-# Fetch Dlib
-include(FetchContent)
-FetchContent_Declare(dlib
-    GIT_REPOSITORY https://github.com/davisking/dlib.git
-    GIT_TAG        v19.18
-)
-FetchContent_MakeAvailable(dlib)
+# Find dependencies
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(DEPS REQUIRED dlib>=19.0)
 
-add_executable(assignment_learning_ex main.cxx)
-target_link_libraries(assignment_learning_ex dlib::dlib)
+# Add subdirectory
+add_subdirectory(src)
