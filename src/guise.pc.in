@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
+
+Name: guise
+Description: A simple example of a pkg-config library using C++ that has dependencies itself
+Version: 1.0
+Libs: -L${libdir} -lguise
+Cflags: -I${includedir}
+Requires: dlib >= 19.0
