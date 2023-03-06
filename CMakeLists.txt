@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.14)
 project(guise)
 
 include(GNUInstallDirs)
+include(FetchContent)
 
 # Suppress -Wdeprecated error messages. This comes from DLib's use of std::iterator.
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
@@ -13,13 +14,11 @@ endif()
 find_package(PkgConfig)
 if(PKG_CONFIG_FOUND)
     pkg_check_modules(DLIB dlib-1)
+    #pkg_check_modules(FLEXIBLAS flexiblas)
 endif()
 
-if(DLIB_FOUND)
-    # Use pkg-config to include dlib
-else()
+if(NOT DLIB_FOUND)
     # Use FetchContent to pull in dlib as a dependency
-    include(FetchContent)
     FetchContent_Declare(dlib
         GIT_REPOSITORY https://github.com/davisking/dlib.git
         GIT_TAG        v19.18

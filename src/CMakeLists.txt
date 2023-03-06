@@ -15,6 +15,7 @@ endif()
 # Configure PkgConfig file.
 configure_file(guise.pc.in guise.pc @ONLY)
 
+# Install everything.
 install(TARGETS guise LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(FILES guise.hxx DESTINATION include/guise)
 install(FILES ${CMAKE_BINARY_DIR}/src/guise.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
