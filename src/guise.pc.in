@@ -8,4 +8,4 @@ Description: A simple example of a pkg-config library using C++ that has depende
 Version: 1.0
 Libs: -L${libdir} -lguise
 Cflags: -I${includedir}
-Requires: dlib >= 19.0
+Requires: dlib-1 flexiblas

@@ -125,4 +125,3 @@ bool Guise::compare_faces(dlib::matrix<dlib::rgb_pixel> &face_one, dlib::matrix<
     }
 }
 
-int main(){}
