@@ -12,8 +12,8 @@ using namespace guise;
 Guise::Guise()
 {
     detector = dlib::get_frontal_face_detector();
-    dlib::deserialize("./shape_predictor_5_face_landmarks.dat") >> sp;
-    dlib::deserialize("./dlib_face_recognition_resnet_model_v1.dat") >> net;
+    dlib::deserialize(DATA_FILE_PATH_LANDMK) >> sp;
+    dlib::deserialize(DATA_FILE_PATH_RESNET) >> net;
 }
 
 // Get the face rectangle and the shape detection.

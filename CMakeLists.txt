@@ -14,8 +14,8 @@ endif()
 find_package(PkgConfig)
 if(PKG_CONFIG_FOUND)
     pkg_check_modules(DLIB dlib-1 REQUIRED)
-    #pkg_check_modules(FLEXIBLAS flexiblas)
 endif()
 
 # Add subdirectory
+add_subdirectory(data)
 add_subdirectory(src)
