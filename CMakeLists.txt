@@ -7,7 +7,7 @@ include(FetchContent)
 
 # Suppress -Wdeprecated error messages. This comes from DLib's use of std::iterator.
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 endif()
 
 # Get DLib source, and make sure that it is being compiled with position independent code. 
