@@ -1,21 +1,13 @@
 # Root CMakeLists.txt
-cmake_minimum_required(VERSION 3.14)
-project(guise)
+cmake_minimum_required(VERSION 3.12)
+project(guise VERSION 1.0)
 
-include(GNUInstallDirs)
-include(FetchContent)
-
-# Suppress -Wdeprecated error messages. This comes from DLib's use of std::iterator.
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-endif()
-
-# Get DLib source, and make sure that it is being compiled with position independent code. 
+# Get the DLib library. 
 find_package(PkgConfig)
 if(PKG_CONFIG_FOUND)
     pkg_check_modules(DLIB dlib-1 REQUIRED)
 endif()
 
-# Add subdirectory
+# Add subdirectories
 add_subdirectory(data)
 add_subdirectory(src)

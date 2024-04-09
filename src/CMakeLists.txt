@@ -9,12 +9,9 @@ add_library(guise SHARED ${SOURCES})
 target_compile_definitions(guise PRIVATE DATA_FILE_PATH_RESNET="${DATA_FILE_PATH_RESNET}")
 target_compile_definitions(guise PRIVATE DATA_FILE_PATH_LANDMK="${DATA_FILE_PATH_LANDMK}")
 
-if(DLIB_FOUND)
-    target_include_directories(guise PUBLIC ${DLIB_INCLUDE_DIRS})
-    target_link_libraries(guise PUBLIC dlib)
-else()
-    target_link_libraries(guise PUBLIC dlib::dlib)
-endif()
+# Link dlib with guise, and include the header files.
+target_include_directories(guise PUBLIC ${DLIB_INCLUDE_DIRS})
+target_link_libraries(guise PUBLIC dlib)
 
 # Configure PkgConfig file.
 configure_file(guise.pc.in guise.pc @ONLY)
