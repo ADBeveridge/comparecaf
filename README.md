@@ -19,6 +19,12 @@ You will need:
  ```
  sudo dnf install dlib-devel flexiblas-devel cmake sqlite-devel libX11-devel libjpeg-devel libpng-devel zlib-devel g++
  ```
+
+### Debian
+```
+sudo apt install libdlib-dev cmake g++ 
+```
+
 Once you have all your dependencies, download Guise, and extract it if needed (not if cloned via Git). Then follow the basic CMake compilation process.
 ### Fedora / Debian
 ``` 
