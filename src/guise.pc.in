@@ -4,7 +4,7 @@ includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
 libdir=${exec_prefix}/@CMAKE_INSTALL_LIBDIR@
 
 Name: guise
-Description: A simple example of a pkg-config library using C++ that has dependencies itself
+Description: Compare faces across images
 Version: 1.0
 Libs: -L${libdir} -lguise
 Cflags: -I${includedir}
